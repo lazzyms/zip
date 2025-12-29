@@ -44,18 +44,15 @@ export async function GET(request: Request) {
             boxShadow: '0 8px 32px rgba(249, 115, 22, 0.3)',
           }}
         >
-          <div
-            style={{
-              fontSize: width > 1000 ? 140 : 100,
-              color: 'white',
-              fontWeight: 900,
-              transform: 'rotate(-90deg)',
-              textShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-            }}
-          >
-            Z
-          </div>
+          <svg width={width > 1000 ? "140" : "100"} height={width > 1000 ? "140" : "100"} viewBox="0 0 24 24" fill="none">
+            <path 
+              d="M13 2L3 14h8l-1 8 10-12h-8l1-8z" 
+              fill="white" 
+              stroke="white" 
+              strokeWidth="0.3"
+              strokeLinejoin="round"
+            />
+          </svg>
         </div>
 
         {/* App Name */}

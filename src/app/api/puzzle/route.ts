@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRandomPuzzle } from "@/lib/game/storage";
 
+// Only allow Node.js runtime (not Edge)
+export const runtime = "nodejs";
+
 export async function GET(request: NextRequest) {
   try {
     // Get excluded puzzle IDs from query params

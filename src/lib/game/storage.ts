@@ -5,10 +5,20 @@ import { puzzles } from "@/lib/db/schema";
 import { eq, notInArray, sql } from "drizzle-orm";
 import { GameState, Grid } from "./types";
 import { generatePuzzle, Difficulty } from "./generator";
+import crypto from "crypto";
 
 // In-memory cache for recently generated puzzles
 const puzzleCache = new Map<string, { grid: Grid; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Generate a unique hash for a puzzle grid
+ * This creates a fingerprint based on the grid structure
+ */
+function generatePuzzleHash(grid: Grid): string {
+  const gridJson = JSON.stringify(grid);
+  return crypto.createHash("sha256").update(gridJson).digest("hex");
+}
 
 function getCacheKey(difficulty: Difficulty): string {
   return `puzzle-${difficulty}`;
@@ -21,20 +31,54 @@ function isCacheValid(key: string): boolean {
 }
 
 /**
+ * Check if a puzzle with the same hash already exists
+ */
+async function puzzleExists(hash: string): Promise<boolean> {
+  try {
+    const result = await db
+      .select()
+      .from(puzzles)
+      .where(eq(puzzles.gridHash, hash))
+      .limit(1);
+    return result.length > 0;
+  } catch (error) {
+    console.error("Failed to check puzzle existence:", error);
+    return false;
+  }
+}
+
+/**
  * Save a generated puzzle to database
+ * Returns true if saved successfully, false if duplicate
  */
 export async function savePuzzle(
   grid: Grid,
   difficulty: Difficulty
-): Promise<void> {
+): Promise<boolean> {
   try {
+    const hash = generatePuzzleHash(grid);
+
+    // Check if this exact puzzle already exists
+    if (await puzzleExists(hash)) {
+      console.log(
+        `Duplicate puzzle detected (hash: ${hash.substring(
+          0,
+          8
+        )}...), skipping save`
+      );
+      return false;
+    }
+
     await db.insert(puzzles).values({
       difficulty,
       gridJson: JSON.stringify(grid),
+      gridHash: hash,
       created: Date.now(),
     });
+    return true;
   } catch (error) {
     console.error("Failed to save puzzle:", error);
+    return false;
   }
 }
 
@@ -92,8 +136,8 @@ export async function getOrGeneratePuzzle(
   // Try to get from database
   const dbPuzzle = await getPuzzleByDifficulty(difficulty);
   if (dbPuzzle) {
-    puzzleCache.set(cacheKey, { grid: dbPuzzle, timestamp: Date.now() });
-    return dbPuzzle;
+    puzzleCache.set(cacheKey, { grid: dbPuzzle.grid, timestamp: Date.now() });
+    return dbPuzzle.grid;
   }
 
   // Generate new puzzle if none exists
@@ -106,6 +150,7 @@ export async function getOrGeneratePuzzle(
 
 /**
  * Get a random difficulty and fetch puzzle
+ * Always generates new puzzles on-demand to ensure unlimited unique puzzles
  */
 export async function getRandomPuzzle(excludedIds: number[] = []): Promise<{
   grid: Grid;
@@ -116,32 +161,57 @@ export async function getRandomPuzzle(excludedIds: number[] = []): Promise<{
   const randomDifficulty =
     difficulties[Math.floor(Math.random() * difficulties.length)];
 
-  // Try to get puzzle from database first
-  const dbPuzzle = await getPuzzleByDifficulty(randomDifficulty, excludedIds);
-  if (dbPuzzle) {
-    return {
-      grid: dbPuzzle.grid,
-      difficulty: randomDifficulty,
-      puzzleId: dbPuzzle.puzzleId,
-    };
+  let newGrid: Grid;
+  let saved = false;
+  let attempts = 0;
+  const maxAttempts = 10;
+
+  // Keep generating until we get a unique puzzle
+  while (!saved && attempts < maxAttempts) {
+    newGrid = generatePuzzle({ difficulty: randomDifficulty });
+    saved = await savePuzzle(newGrid, randomDifficulty);
+    attempts++;
+
+    if (!saved) {
+      console.log(`Attempt ${attempts}: Generated duplicate, trying again...`);
+    }
   }
 
-  // If no puzzle found (all excluded), generate a new one
-  const newGrid = generatePuzzle({ difficulty: randomDifficulty });
-  await savePuzzle(newGrid, randomDifficulty);
-
-  // Get the newly saved puzzle to get its ID
-  const newPuzzle = await getPuzzleByDifficulty(randomDifficulty, excludedIds);
-  if (newPuzzle) {
-    return {
-      grid: newPuzzle.grid,
-      difficulty: randomDifficulty,
-      puzzleId: newPuzzle.puzzleId,
-    };
+  if (!saved) {
+    // After max attempts, just use the last generated puzzle anyway
+    console.warn(
+      `Failed to generate unique puzzle after ${maxAttempts} attempts, using last generated`
+    );
+    newGrid = generatePuzzle({ difficulty: randomDifficulty });
+    await savePuzzle(newGrid, randomDifficulty); // Force save
   }
 
-  // Fallback: return generated grid with ID 0
-  return { grid: newGrid, difficulty: randomDifficulty, puzzleId: 0 };
+  // Get the newly saved puzzle to retrieve its ID
+  try {
+    const result = await db
+      .select()
+      .from(puzzles)
+      .where(eq(puzzles.difficulty, randomDifficulty))
+      .orderBy(sql`${puzzles.created} DESC`)
+      .limit(1);
+
+    if (result.length > 0) {
+      return {
+        grid: JSON.parse(result[0].gridJson) as Grid,
+        difficulty: randomDifficulty,
+        puzzleId: result[0].id,
+      };
+    }
+  } catch (error) {
+    console.error("Failed to retrieve saved puzzle:", error);
+  }
+
+  // Fallback: use a timestamp-based ID if database query fails
+  return {
+    grid: newGrid!,
+    difficulty: randomDifficulty,
+    puzzleId: Date.now(),
+  };
 }
 
 /**

@@ -1,6 +1,9 @@
 import { db } from "@/lib/db";
 import { startScheduler } from "@/lib/scheduler";
 
+// Only allow Node.js runtime (not Edge)
+export const runtime = "nodejs";
+
 /**
  * Next.js instrumentation hook runs on server startup
  * Used to initialize database and start background jobs

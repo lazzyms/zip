@@ -49,7 +49,7 @@ export async function GET(request: Request) {
               fontSize: width > 1000 ? 140 : 100,
               color: 'white',
               fontWeight: 900,
-              transform: 'rotate(90deg)',
+              transform: 'rotate(-90deg)',
               textShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
               fontFamily: 'system-ui, -apple-system, sans-serif',
             }}

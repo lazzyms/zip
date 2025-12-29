@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { generatePuzzle, type Difficulty } from "@/lib/game/generator";
 import { savePuzzle, getPuzzleCountByDifficulty } from "@/lib/game/storage";
 
+// Only allow Node.js runtime (not Edge)
+export const runtime = "nodejs";
+
 /**
  * Manual puzzle generation endpoint
  * Generates and saves a new puzzle for the specified difficulty

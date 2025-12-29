@@ -5,9 +5,9 @@ import { savePuzzle, getPuzzleCountByDifficulty } from "@/lib/game/storage";
 import { generatePuzzle, type Difficulty } from "@/lib/game/generator";
 
 const difficulties: Difficulty[] = ["easy", "medium", "hard"];
-const PUZZLES_PER_DIFFICULTY = 10; // Target pool size
+const PUZZLES_PER_DIFFICULTY = 100; // Keep a buffer of puzzles for performance
 const TARGET_COUNT = PUZZLES_PER_DIFFICULTY;
-const MIN_COUNT = 5; // Start generating when pool drops below this
+const MIN_COUNT = 50; // Start generating when pool drops below this
 
 let schedulerStarted = false;
 let continuousGenerationInterval: NodeJS.Timeout | null = null;

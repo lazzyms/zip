@@ -33,21 +33,17 @@ export default function Icon() {
           }}
         />
         
-        {/* Main Z letter */}
-        <div
-          style={{
-            fontSize: 280,
-            color: 'white',
-            fontWeight: 900,
-            transform: 'rotate(90deg)',
-            display: 'flex',
-            textShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
-            letterSpacing: '-0.02em',
-          }}
-        >
-          Z
-        </div>
+        {/* Lightning bolt */}
+        <svg width="280" height="280" viewBox="0 0 24 24" fill="none">
+          <path 
+            d="M13 2L3 14h8l-1 8 10-12h-8l1-8z" 
+            fill="white" 
+            stroke="white" 
+            strokeWidth="0.3"
+            strokeLinejoin="round"
+            style={{ filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2))' }}
+          />
+        </svg>
       </div>
     ),
     {

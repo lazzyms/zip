@@ -37,7 +37,7 @@ export default function AppleIcon() {
             fontSize: 100,
             color: 'white',
             fontWeight: 900,
-            transform: 'rotate(90deg)',
+            transform: 'rotate(-90deg)',
             display: 'flex',
             textShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
             fontFamily: 'system-ui, -apple-system, sans-serif',

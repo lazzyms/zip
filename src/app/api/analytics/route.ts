@@ -3,6 +3,9 @@ import { db } from "@/lib/db";
 import { analytics, puzzles } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
+// Only allow Node.js runtime (not Edge)
+export const runtime = "nodejs";
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

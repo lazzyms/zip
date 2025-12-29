@@ -1,5 +1,8 @@
 import { ImageResponse } from 'next/og';
 
+// Force dynamic rendering to avoid prerendering issues
+export const dynamic = 'force-dynamic';
+
 // Image metadata for Open Graph
 export const alt = 'Zip - Logic Puzzle Game';
 export const size = {
@@ -10,6 +13,10 @@ export const contentType = 'image/png';
 
 // Open Graph image for social sharing
 export default async function OpenGraphImage() {
+  // Make it dynamic to avoid prerendering issues
+  const params = new URLSearchParams();
+  params.set('t', Date.now().toString());
+
   return new ImageResponse(
     (
       <div
@@ -62,7 +69,7 @@ export default async function OpenGraphImage() {
                 fontSize: 100,
                 color: 'white',
                 fontWeight: 900,
-                transform: 'rotate(90deg)',
+                transform: 'rotate(-90deg)',
                 textShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
                 fontFamily: 'system-ui, -apple-system, sans-serif',
               }}

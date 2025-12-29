@@ -4,6 +4,7 @@ export const puzzles = sqliteTable("puzzles", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   difficulty: text("difficulty").notNull(), // 'easy' | 'medium' | 'hard'
   gridJson: text("gridJson").notNull(), // JSON stringified Cell[][]
+  gridHash: text("gridHash").notNull().unique(), // SHA256 hash for uniqueness
   created: integer("created").notNull(), // timestamp
   completions: integer("completions").default(0), // times successfully completed
   avgPlayTimeMs: real("avgPlayTimeMs").default(0), // average play time in milliseconds

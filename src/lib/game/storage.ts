@@ -47,7 +47,10 @@ export async function getPuzzleByDifficulty(
 ): Promise<{ grid: Grid; puzzleId: number } | null> {
   try {
     // Build query with optional exclusion
-    let query = db.select().from(puzzles).where(eq(puzzles.difficulty, difficulty));
+    let query = db
+      .select()
+      .from(puzzles)
+      .where(eq(puzzles.difficulty, difficulty));
 
     if (excludedIds.length > 0) {
       query = query.where(notInArray(puzzles.id, excludedIds)) as any;
@@ -104,9 +107,7 @@ export async function getOrGeneratePuzzle(
 /**
  * Get a random difficulty and fetch puzzle
  */
-export async function getRandomPuzzle(
-  excludedIds: number[] = []
-): Promise<{
+export async function getRandomPuzzle(excludedIds: number[] = []): Promise<{
   grid: Grid;
   difficulty: Difficulty;
   puzzleId: number;

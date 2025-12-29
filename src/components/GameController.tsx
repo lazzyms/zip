@@ -101,7 +101,8 @@ export function GameController() {
 
       // Fetch new puzzle from server API
       const solvedIds = getSolvedPuzzleIds();
-      const excludedIdsParam = solvedIds.length > 0 ? `?excludedIds=${solvedIds.join(",")}` : "";
+      const excludedIdsParam =
+        solvedIds.length > 0 ? `?excludedIds=${solvedIds.join(",")}` : "";
       const response = await fetch(`/api/puzzle${excludedIdsParam}`);
 
       if (!response.ok) {

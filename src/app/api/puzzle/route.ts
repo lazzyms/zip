@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { getRandomPuzzle } from "@/lib/game/storage";
 
 // Only allow Node.js runtime (not Edge)
@@ -14,12 +15,12 @@ export async function GET(request: NextRequest) {
       : [];
 
     const { grid, difficulty, puzzleId } = await getRandomPuzzle(excludedIds);
-
+    // puzzleId is now a hash, not a DB id
     return NextResponse.json(
       { grid, difficulty, puzzleId },
       {
         headers: {
-          "Cache-Control": "no-store, must-revalidate", // No caching - always fetch fresh puzzle
+          "Cache-Control": "no-store, must-revalidate", // Always fresh
         },
       }
     );

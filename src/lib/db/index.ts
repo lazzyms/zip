@@ -1,9 +1,6 @@
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/vercel-postgres";
+import { sql } from "@vercel/postgres";
 import * as schema from "./schema";
-import fs from "fs";
-import path from "path";
-
 // Only allow Node.js runtime (not Edge)
 export const runtime = "nodejs";
 
@@ -17,17 +14,7 @@ function initDb() {
     throw new Error("Database should only be initialized on the server");
   }
 
-  const dataDir = ".data";
-
-  // Ensure .data directory exists
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-
-  const sqlite = new Database(path.join(dataDir, "zip.db"));
-  sqlite.pragma("journal_mode = WAL");
-
-  dbInstance = drizzle(sqlite, { schema });
+  dbInstance = drizzle(sql, { schema });
   return dbInstance;
 }
 

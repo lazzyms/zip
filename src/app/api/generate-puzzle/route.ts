@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generatePuzzle, type Difficulty } from "@/lib/game/generator";
-import { savePuzzle, getPuzzleCountByDifficulty } from "@/lib/game/storage";
+import { savePuzzle } from "@/lib/game/storage";
 
 // Only allow Node.js runtime (not Edge)
 export const runtime = "nodejs";
@@ -22,21 +22,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate and save puzzle
+    // Generate and "save" puzzle (no-op in DB-less mode)
     const startTime = Date.now();
     const grid = generatePuzzle({ difficulty });
     await savePuzzle(grid, difficulty);
     const generationTime = Date.now() - startTime;
 
-    // Get updated count
-    const count = await getPuzzleCountByDifficulty(difficulty);
-
     return NextResponse.json({
       success: true,
       difficulty,
       generationTime,
-      currentPoolSize: count,
-      message: `Generated ${difficulty} puzzle in ${generationTime}ms`,
+      message: `Generated ${difficulty} puzzle in ${generationTime}ms (DB-less mode)`,
     });
   } catch (error) {
     console.error("Failed to generate puzzle:", error);
@@ -50,44 +46,21 @@ export async function POST(request: NextRequest) {
 /**
  * Get current generation status
  */
-export async function GET(request: NextRequest) {
-  try {
-    const [easy, medium, hard] = await Promise.all([
-      getPuzzleCountByDifficulty("easy"),
-      getPuzzleCountByDifficulty("medium"),
-      getPuzzleCountByDifficulty("hard"),
-    ]);
-
-    const total = easy + medium + hard;
-    const target = 10; // TARGET_COUNT
-
-    return NextResponse.json({
-      pools: {
-        easy: {
-          current: easy,
-          target,
-          percentage: Math.round((easy / target) * 100),
-        },
-        medium: {
-          current: medium,
-          target,
-          percentage: Math.round((medium / target) * 100),
-        },
-        hard: {
-          current: hard,
-          target,
-          percentage: Math.round((hard / target) * 100),
-        },
-      },
-      total,
-      totalTarget: target * 3,
-      health: total >= 15 ? "healthy" : total >= 9 ? "low" : "critical",
-    });
-  } catch (error) {
-    console.error("Failed to get generation status:", error);
-    return NextResponse.json(
-      { error: "Failed to get status" },
-      { status: 500 }
-    );
-  }
+export async function GET() {
+  // In DB-less mode, always return 0 for all counts
+  const easy = 0,
+    medium = 0,
+    hard = 0,
+    total = 0,
+    target = 10;
+  return NextResponse.json({
+    pools: {
+      easy: { current: easy, target, percentage: 0 },
+      medium: { current: medium, target, percentage: 0 },
+      hard: { current: hard, target, percentage: 0 },
+    },
+    total,
+    totalTarget: target * 3,
+    health: "critical",
+  });
 }

@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { analytics, puzzles } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
 
 // Only allow Node.js runtime (not Edge)
 export const runtime = "nodejs";
@@ -18,44 +15,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Save analytics event
-    await db.insert(analytics).values({
+    // Log-only: print analytics event to console (no DB)
+    console.log("Analytics event:", {
       sessionId,
       difficulty,
-      completed: completed ? 1 : 0,
+      completed,
       playTimeMs,
       moveCount,
-      timestamp: Date.now(),
     });
-
-    // If completed, update puzzle stats
-    if (completed) {
-      // Get existing puzzle with this difficulty to update stats
-      const existingPuzzles = await db
-        .select()
-        .from(puzzles)
-        .where(eq(puzzles.difficulty, difficulty))
-        .limit(1);
-
-      if (existingPuzzles.length > 0) {
-        const puzzle = existingPuzzles[0];
-        const newCompletions = (puzzle.completions || 0) + 1;
-        const currentAvgMs = puzzle.avgPlayTimeMs || 0;
-
-        // Calculate new average
-        const newAvgMs =
-          (currentAvgMs * (newCompletions - 1) + playTimeMs) / newCompletions;
-
-        // Update puzzle completion stats
-        await db
-          .update(puzzles)
-          .set({
-            completions: newCompletions,
-            avgPlayTimeMs: newAvgMs,
-          })
-          .where(eq(puzzles.id, puzzle.id));
-      }
-    }
 
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
@@ -73,40 +40,9 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const difficulty = searchParams.get("difficulty");
-
-    if (!difficulty) {
-      return NextResponse.json(
-        { error: "Difficulty parameter required" },
-        { status: 400 }
-      );
-    }
-
-    const analyticsData = await db
-      .select()
-      .from(analytics)
-      .where(eq(analytics.difficulty, difficulty));
-
-    const completed = analyticsData.filter(
-      (a: (typeof analyticsData)[0]) => a.completed === 1
-    ).length;
-    const total = analyticsData.length;
-    const avgPlayTime =
-      total > 0
-        ? analyticsData.reduce(
-            (sum: number, a: (typeof analyticsData)[0]) => sum + a.playTimeMs,
-            0
-          ) / total
-        : 0;
-    const completionRate = total > 0 ? (completed / total) * 100 : 0;
-
+    // No analytics summary in DB-less mode
     return NextResponse.json({
-      difficulty,
-      total,
-      completed,
-      completionRate: Math.round(completionRate),
-      avgPlayTimeMs: Math.round(avgPlayTime),
+      message: "Analytics summary not available in DB-less mode.",
     });
   } catch (error) {
     console.error("Failed to fetch analytics:", error);

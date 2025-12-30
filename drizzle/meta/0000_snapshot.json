@@ -1,112 +1,105 @@
 {
-  "version": "6",
-  "dialect": "sqlite",
-  "id": "0f86a4f5-1fbd-4422-a841-e39b6a9accaa",
+  "id": "74581393-3b0c-468c-a46d-6e9420ba2a2f",
   "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
   "tables": {
-    "analytics": {
+    "public.analytics": {
       "name": "analytics",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "integer",
+          "type": "serial",
           "primaryKey": true,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "sessionId": {
           "name": "sessionId",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "difficulty": {
           "name": "difficulty",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "completed": {
           "name": "completed",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "playTimeMs": {
           "name": "playTimeMs",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "moveCount": {
           "name": "moveCount",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "timestamp": {
           "name": "timestamp",
-          "type": "integer",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
+          "default": "now()"
         }
       },
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
-    "puzzles": {
+    "public.puzzles": {
       "name": "puzzles",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "integer",
+          "type": "serial",
           "primaryKey": true,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "difficulty": {
           "name": "difficulty",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "gridJson": {
           "name": "gridJson",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "gridHash": {
           "name": "gridHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created": {
           "name": "created",
-          "type": "integer",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
+          "default": "now()"
         },
         "completions": {
           "name": "completions",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false,
           "default": 0
         },
         "avgPlayTimeMs": {
@@ -114,33 +107,35 @@
           "type": "real",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false,
           "default": 0
         }
       },
-      "indexes": {
-        "puzzles_gridHash_unique": {
-          "name": "puzzles_gridHash_unique",
-          "columns": [
-            "gridHash"
-          ],
-          "isUnique": true
-        }
-      },
+      "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
+      "uniqueConstraints": {
+        "puzzles_gridHash_unique": {
+          "name": "puzzles_gridHash_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "gridHash"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     }
   },
-  "views": {},
   "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
   "_meta": {
+    "columns": {},
     "schemas": {},
-    "tables": {},
-    "columns": {}
-  },
-  "internal": {
-    "indexes": {}
+    "tables": {}
   }
 }

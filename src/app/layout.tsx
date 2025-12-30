@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f97316",
+  themeColor: "#1f2937",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -119,9 +119,17 @@ export default function RootLayout({
           href="/api/splash?w=1536&h=2048"
         />
       </head>
-      <body className="relative overflow-hidden bg-white">
+      <body
+        className="dark relative overflow-hidden h-screen"
+        style={{
+          paddingTop: "env(safe-area-inset-top)",
+          paddingBottom: "env(safe-area-inset-bottom)",
+          paddingLeft: "env(safe-area-inset-left)",
+          paddingRight: "env(safe-area-inset-right)",
+        }}
+      >
         <GradientBackground />
-        <div className="relative z-10">{children}</div>
+        <div className="relative z-10 h-full">{children}</div>
       </body>
     </html>
   );

@@ -180,3 +180,7 @@ export async function cleanupOldPuzzles(): Promise<void> {
   // Keep store creation but no cleanup logic yet; placeholder for future policies.
   await writeStore(store);
 }
+
+export async function clearPuzzles(): Promise<void> {
+  await writeStore(DEFAULT_STORE);
+}

@@ -10,16 +10,17 @@ function getDimensionsForDifficulty(difficulty: Difficulty): {
   rows: number;
   cols: number;
 } {
-  switch (difficulty) {
-    case "easy":
-      return { rows: Math.random() > 0.5 ? 4 : 5, cols: 4 };
-    case "medium":
-      return { rows: 5, cols: 5 };
-    case "hard":
-      return { rows: 6, cols: 6 };
-    default:
-      return { rows: 5, cols: 5 };
-  }
+  const size = Math.floor(Math.random() * 5) + 3; // 3 to 7
+  return { rows: size, cols: size };
+}
+
+function getCheckpointRange(rows: number): { min: number; max: number } {
+  if (rows === 3) return { min: 3, max: 5 };
+  if (rows === 4) return { min: 4, max: 7 };
+  if (rows === 5) return { min: 5, max: 9 };
+  if (rows === 6) return { min: 6, max: 12 };
+  if (rows === 7) return { min: 8, max: 18 };
+  return { min: 5, max: 12 }; // fallback
 }
 
 function getCheckpointDensityForDifficulty(difficulty: Difficulty): number {
@@ -178,8 +179,8 @@ export function generatePuzzle(options?: GeneratorOptions): Grid {
   // Place checkpoints sequentially along path
   grid[path[0].row][path[0].col].num = 1;
 
-  const density = getCheckpointDensityForDifficulty(difficulty);
-  const targetCount = Math.floor(rows * cols * density);
+  const { min, max } = getCheckpointRange(rows);
+  const numCheckpoints = Math.floor(Math.random() * (max - min + 1)) + min; // min to max
 
   const potentialIndices: number[] = [];
   for (let i = 1; i < path.length - 1; i++) {
@@ -196,7 +197,7 @@ export function generatePuzzle(options?: GeneratorOptions): Grid {
   }
 
   // Select top N
-  const selectedIndices = potentialIndices.slice(0, targetCount - 2);
+  const selectedIndices = potentialIndices.slice(0, numCheckpoints - 2);
 
   // Add End index
   selectedIndices.push(path.length - 1);

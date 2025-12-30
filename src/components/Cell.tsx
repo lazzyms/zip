@@ -1,13 +1,11 @@
 import React from "react";
-import { Cell as CellType, Direction } from "@/lib/game/types";
+import { Cell as CellType } from "@/lib/game/types";
 import { clsx } from "clsx";
-import { motion } from "framer-motion";
 
 interface CellProps {
   cell: CellType;
   isActive: boolean;
   isVisited: boolean;
-  isValidNext: boolean; // For hint/interaction feedback
   onPointerEnter: (row: number, col: number) => void;
   onPointerDown: (row: number, col: number) => void;
 }
@@ -16,7 +14,6 @@ export function Cell({
   cell,
   isActive,
   isVisited,
-  isValidNext,
   onPointerEnter,
   onPointerDown,
 }: CellProps) {

@@ -1,14 +1,8 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Grid as GridType,
-  Position,
-  GameState,
-  Direction,
-} from "@/lib/game/types";
+import { Grid as GridType, Position, GameState } from "@/lib/game/types";
 import { Grid } from "./Grid";
 import { RotateCcw, Play, Shuffle, Loader } from "lucide-react";
-import { clsx } from "clsx";
 import {
   saveGameState,
   loadGameState,
@@ -439,8 +433,20 @@ export function GameController() {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-700">
             <div className="p-2.5 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg shadow-orange-500/20 border-2 border-orange-400/50 flex items-center justify-center transform hover:scale-110 transition-transform">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z" fill="white" stroke="white" strokeWidth="0.5" strokeLinejoin="round"/>
+              <svg
+                width="36"
+                height="36"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"
+                  fill="white"
+                  stroke="white"
+                  strokeWidth="0.5"
+                  strokeLinejoin="round"
+                />
               </svg>
             </div>
             <h1 className="text-3xl sm:text-5xl font-black tracking-tighter text-orange-500 sr-only">
@@ -502,12 +508,7 @@ export function GameController() {
         </button>
       </div>
 
-      <Grid
-        grid={gameState.grid}
-        path={gameState.path}
-        onMove={handleMove}
-        gameStatus={gameState.status}
-      />
+      <Grid grid={gameState.grid} path={gameState.path} onMove={handleMove} />
 
       <div className="flex gap-2 sm:gap-4 items-center mt-6 sm:mt-8 w-full justify-center">
         {/* Undo Button */}

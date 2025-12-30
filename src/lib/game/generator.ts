@@ -1,4 +1,4 @@
-import { Grid, Cell, Position, Direction, Walls } from "./types";
+import { Grid, Cell, Position, Direction } from "./types";
 
 export type Difficulty = "easy" | "medium" | "hard";
 

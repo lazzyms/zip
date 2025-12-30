@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "puzzles": [
+    {
+      "id": 90667108557335,
+      "difficulty": "easy",
+      "grid": [
+        [
+          {
+            "row": 0,
+            "col": 0,
+            "num": 0,
+            "walls": {
+              "N": true,
+              "S": false,
+              "E": false,
+              "W": true
+            }
+          },
+          {
+            "row": 0,
+            "col": 1,
+            "num": 2,
+            "walls": {
+              "N": true,
+              "S": true,
+              "E": false,
+              "W": false
+            }
+          },
+          {
+            "row": 0,
+            "col": 2,
+            "num": 0,
+            "walls": {
+              "N": true,
+              "S": true,
+              "E": false,
+              "W": false
+            }
+          },
+          {
+            "row": 0,
+            "col": 3,
+            "num": 3,
+            "walls": {
+              "N": true,
+              "S": false,
+              "E": true,
+              "W": false
+            }
+          }
+        ],
+        [
+          {
+            "row": 1,
+            "col": 0,
+            "num": 0,
+            "walls": {
+              "N": false,
+              "S": true,
+              "E": false,
+              "W": true
+            }
+          },
+          {
+            "row": 1,
+            "col": 1,
+            "num": 0,
+            "walls": {
+              "N": true,
+              "S": false,
+              "E": true,
+              "W": false
+            }
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "num": 4,
+            "walls": {
+              "N": true,
+              "S": false,
+              "E": false,
+              "W": true
+            }
+          },
+          {
+            "row": 1,
+            "col": 3,
+            "num": 0,
+            "walls": {
+              "N": false,
+              "S": true,
+              "E": true,
+              "W": false
+            }
+          }
+        ],
+        [
+          {
+            "row": 2,
+            "col": 0,
+            "num": 9,
+            "walls": {
+              "N": true,
+              "S": false,
+              "E": true,
+              "W": true
+            }
+          },
+          {
+            "row": 2,
+            "col": 1,
+            "num": 1,
+            "walls": {
+              "N": false,
+              "S": true,
+              "E": true,
+              "W": true
+            }
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "num": 0,
+            "walls": {
+              "N": false,
+              "S": true,
+              "E": false,
+              "W": true
+            }
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "num": 5,
+            "walls": {
+              "N": true,
+              "S": false,
+              "E": true,
+              "W": false
+            }
+          }
+        ],
+        [
+          {
+            "row": 3,
+            "col": 0,
+            "num": 8,
+            "walls": {
+              "N": false,
+              "S": true,
+              "E": false,
+              "W": true
+            }
+          },
+          {
+            "row": 3,
+            "col": 1,
+            "num": 7,
+            "walls": {
+              "N": true,
+              "S": true,
+              "E": false,
+              "W": false
+            }
+          },
+          {
+            "row": 3,
+            "col": 2,
+            "num": 6,
+            "walls": {
+              "N": true,
+              "S": true,
+              "E": false,
+              "W": false
+            }
+          },
+          {
+            "row": 3,
+            "col": 3,
+            "num": 0,
+            "walls": {
+              "N": false,
+              "S": true,
+              "E": true,
+              "W": false
+            }
+          }
+        ]
+      ],
+      "gridHash": "527614cc6217dc07c257deaaf050202277afc0b71e92670fd3ec49c6bc768abf",
+      "createdAt": 1767074150211
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { GameController } from '@/components/GameController';
+import { GameController } from "@/components/GameController";
 
 export default function Home() {
   return (
@@ -7,7 +7,7 @@ export default function Home() {
       <div className="mt-12 max-w-md text-center text-neutral-500 text-sm">
         <p>Connect numbers 1 to N.</p>
         <p>Visit every cell exactly once.</p>
-        <p>Don't cross the walls.</p>
+        <p>Don&apos;t cross the walls.</p>
       </div>
     </div>
   );

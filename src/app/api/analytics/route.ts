@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
  * GET /api/analytics
  * Returns analytics summary for dashboard (admin only in production)
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // No analytics summary in DB-less mode
     return NextResponse.json({

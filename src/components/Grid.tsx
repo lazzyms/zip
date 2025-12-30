@@ -1,16 +1,15 @@
 import React, { useRef, useEffect } from "react";
 import { Cell as CellComp } from "./Cell";
-import { Grid as GridType, Position, Cell } from "@/lib/game/types";
+import { Grid as GridType, Position } from "@/lib/game/types";
 import { motion } from "framer-motion";
 
 interface GridProps {
   grid: GridType;
   path: Position[];
   onMove: (to: Position) => void;
-  gameStatus: "playing" | "won" | "lost";
 }
 
-export function Grid({ grid, path, onMove, gameStatus }: GridProps) {
+export function Grid({ grid, path, onMove }: GridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Helper to check efficiently
@@ -118,7 +117,6 @@ export function Grid({ grid, path, onMove, gameStatus }: GridProps) {
             cell={cell}
             isActive={isLast(r, c)}
             isVisited={isVisited(r, c)}
-            isValidNext={false} // Todo: calculate valid next
             onPointerEnter={() => onMove({ row: r, col: c })}
             onPointerDown={() => onMove({ row: r, col: c })}
           />

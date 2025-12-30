@@ -25,14 +25,15 @@ export async function POST(request: NextRequest) {
     // Generate and "save" puzzle (no-op in DB-less mode)
     const startTime = Date.now();
     const grid = generatePuzzle({ difficulty });
-    await savePuzzle(grid, difficulty);
+    const puzzleId = await savePuzzle(grid, difficulty);
     const generationTime = Date.now() - startTime;
 
     return NextResponse.json({
       success: true,
       difficulty,
+      puzzleId,
       generationTime,
-      message: `Generated ${difficulty} puzzle in ${generationTime}ms (DB-less mode)`,
+      message: `Generated ${difficulty} puzzle in ${generationTime}ms (stored in JSON)`,
     });
   } catch (error) {
     console.error("Failed to generate puzzle:", error);

@@ -151,20 +151,18 @@ export function GameController() {
 
   // Separate effect for fetching puzzle stats with auto-refresh
   useEffect(() => {
-    const fetchStats = () => {
-      fetch("/api/puzzle-stats")
-        .then((res) => res.json())
-        .then((data) => setPuzzleStats(data))
-        .catch((err) => console.error("Failed to fetch puzzle stats:", err));
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/puzzle-stats");
+        const data = await res.json();
+        setPuzzleStats(data);
+      } catch (err) {
+        console.error("Failed to fetch puzzle stats:", err);
+      }
     };
 
-    // Fetch immediately
+    // Fetch once on mount (no polling)
     fetchStats();
-
-    // Refresh every 5 seconds to show live updates
-    const interval = setInterval(fetchStats, 5000);
-
-    return () => clearInterval(interval);
   }, []);
 
   // Auto-start timer after 1.5 seconds if player hasn't made a move

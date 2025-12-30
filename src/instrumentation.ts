@@ -1,6 +1,3 @@
-import { startScheduler } from "@/lib/scheduler";
-import { ensurePuzzleStore } from "@/lib/game/storage";
-
 // Only allow Node.js runtime (not Edge)
 export const runtime = "nodejs";
 
@@ -13,6 +10,11 @@ export async function register() {
     console.log("🔧 Initializing ZIP Game Server...");
 
     try {
+      const [{ ensurePuzzleStore }, { startScheduler }] = await Promise.all([
+        import("@/lib/game/storage"),
+        import("@/lib/scheduler"),
+      ]);
+
       await ensurePuzzleStore();
       console.log("✓ Puzzle JSON store ready");
 

@@ -12,7 +12,7 @@ export interface SavedGameState {
 
 const STORAGE_KEY = "zip_game_state";
 const SESSION_KEY = "zip_session_id";
-const HIGH_SCORE_KEY = "zip_session_high_score";
+const HIGH_SCORE_KEY = "zip_high_score";
 const SOLVED_PUZZLES_KEY = "zip_solved_puzzles";
 
 /**
@@ -111,31 +111,26 @@ export function getPlayTimeMs(startTime: number): number {
 }
 
 /**
- * Format play time for display
+ * Format play time for display as MM:SS
  */
 export function formatPlayTime(ms: number): string {
   const seconds = Math.floor(ms / 1000);
   const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-
-  if (hours > 0) {
-    return `${hours}h ${minutes % 60}m`;
-  }
-  if (minutes > 0) {
-    return `${minutes}m ${seconds % 60}s`;
-  }
-  return `${seconds}s`;
+  const remainingSeconds = seconds % 60;
+  return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+    .toString()
+    .padStart(2, "0")}`;
 }
 
 /**
- * Get session high score (best time)
+ * Get overall high score (best time across all sessions)
  * Returns time in milliseconds or null if no high score
  */
-export function getSessionHighScore(): number | null {
+export function getOverallHighScore(): number | null {
   if (typeof window === "undefined") return null;
 
   try {
-    const score = sessionStorage.getItem(HIGH_SCORE_KEY);
+    const score = localStorage.getItem(HIGH_SCORE_KEY);
     return score ? parseInt(score, 10) : null;
   } catch (error) {
     console.error("Failed to get high score:", error);
@@ -144,18 +139,18 @@ export function getSessionHighScore(): number | null {
 }
 
 /**
- * Update session high score if new time is better (lower)
+ * Update overall high score if new time is better (lower)
  * Returns true if a new record was set
  */
-export function updateSessionHighScore(timeMs: number): boolean {
+export function updateOverallHighScore(timeMs: number): boolean {
   if (typeof window === "undefined") return false;
 
   try {
-    const currentHighScore = getSessionHighScore();
+    const currentHighScore = getOverallHighScore();
 
     // If no high score or new time is better (lower), update it
     if (currentHighScore === null || timeMs < currentHighScore) {
-      sessionStorage.setItem(HIGH_SCORE_KEY, timeMs.toString());
+      localStorage.setItem(HIGH_SCORE_KEY, timeMs.toString());
       return true; // New record!
     }
 
@@ -167,13 +162,13 @@ export function updateSessionHighScore(timeMs: number): boolean {
 }
 
 /**
- * Clear session high score (useful for testing or reset)
+ * Clear overall high score (useful for testing or reset)
  */
-export function clearSessionHighScore(): void {
+export function clearOverallHighScore(): void {
   if (typeof window === "undefined") return;
 
   try {
-    sessionStorage.removeItem(HIGH_SCORE_KEY);
+    localStorage.removeItem(HIGH_SCORE_KEY);
   } catch (error) {
     console.error("Failed to clear high score:", error);
   }

@@ -7,15 +7,24 @@ interface NodeProps {
   isVisited: boolean;
 }
 
-export function Node({ num, isVisited }: NodeProps) {
+const NodeInner = function NodeInner({ num, isVisited }: NodeProps) {
   return (
     <div
       className={clsx(
-        "z-10 flex items-center justify-center w-8 h-8 rounded-full bg-white shadow-lg pointer-events-none transition-all duration-300",
-        isVisited ? "scale-125 text-blue-600" : "scale-100 text-neutral-800"
+        "z-10 flex items-center justify-center w-10 h-10 bg-transparent pointer-events-none transition-all duration-300",
+        isVisited ? "scale-125" : "scale-100"
       )}
     >
-      <span className="font-black text-lg">{num}</span>
+      <span
+        className={clsx(
+          "font-black text-2xl",
+          isVisited ? "text-white" : "text-gray-300"
+        )}
+      >
+        {num}
+      </span>
     </div>
   );
-}
+};
+
+export const Node = React.memo(NodeInner);

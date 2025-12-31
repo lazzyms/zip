@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { X, ChevronRight } from "lucide-react";
 
 const ONBOARDING_STEPS = [
@@ -32,35 +32,89 @@ export function OnboardingTooltip({
   onComplete,
 }: OnboardingTooltipProps) {
   const [currentStep, setCurrentStep] = useState(0);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const handleNext = useCallback(() => {
+    setCurrentStep((s) => {
+      if (s === ONBOARDING_STEPS.length - 1) {
+        onComplete();
+        return s;
+      }
+      return s + 1;
+    });
+  }, [onComplete]);
+
+  const handleSkip = useCallback(() => {
+    onComplete();
+  }, [onComplete]);
 
   useEffect(() => {
-    if (isVisible) {
-      setCurrentStep(0);
-    }
+    if (!isVisible) return;
+    // Reset current step only when visibility changes to true
+    setTimeout(() => setCurrentStep(0), 0);
   }, [isVisible]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const focusableSelector =
+      "a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex='-1'])";
+
+    const cacheRef = { nodes: [] as HTMLElement[] };
+
+    const collectNodes = () => {
+      const el = containerRef.current;
+      if (!el) return (cacheRef.nodes = []);
+      cacheRef.nodes = Array.from(
+        el.querySelectorAll<HTMLElement>(focusableSelector)
+      );
+    };
+
+    const focusFirst = () => {
+      collectNodes();
+      cacheRef.nodes[0]?.focus();
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        handleSkip();
+        return;
+      }
+
+      if (e.key === "Tab") {
+        if (cacheRef.nodes.length === 0) collectNodes();
+        const nodes = cacheRef.nodes;
+        if (nodes.length === 0) return;
+        const first = nodes[0];
+        const last = nodes[nodes.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    focusFirst();
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isVisible, handleSkip]);
 
   if (!isVisible) return null;
 
   const step = ONBOARDING_STEPS[currentStep];
   const isLastStep = currentStep === ONBOARDING_STEPS.length - 1;
 
-  const handleNext = () => {
-    if (isLastStep) {
-      onComplete();
-    } else {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handleSkip = () => {
-    onComplete();
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="bg-neutral-800 border border-neutral-700 p-6 rounded-2xl max-w-sm mx-4 shadow-lg">
         <div className="flex justify-between items-start mb-4">
-          <h3 className="text-xl font-bold text-white">{step.title}</h3>
+          <h3 id="onboard-title" className="text-xl font-bold text-white">
+            {step.title}
+          </h3>
           <button
             onClick={handleSkip}
             className="text-neutral-400 hover:text-white transition-colors"
@@ -93,3 +147,5 @@ export function OnboardingTooltip({
     </div>
   );
 }
+
+export default memo(OnboardingTooltip);

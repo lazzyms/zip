@@ -5,7 +5,7 @@ import { GameBoard } from "./GameBoard";
 import { TopBar } from "./TopBar";
 import { BottomControls } from "./BottomControls";
 import { OnboardingTooltip } from "./OnboardingTooltip";
-import { RotateCcw, Play, Shuffle, Loader, X } from "lucide-react";
+import { Play, Loader, X } from "lucide-react";
 import {
   saveGameState,
   loadGameState,
@@ -13,8 +13,8 @@ import {
   getSessionId,
   getPlayTimeMs,
   formatPlayTime,
-  getSessionHighScore,
-  updateSessionHighScore,
+  getOverallHighScore,
+  updateOverallHighScore,
   getSolvedPuzzleIds,
   markPuzzleAsSolved,
 } from "@/lib/storage/gameState";
@@ -42,13 +42,7 @@ export function GameController() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [hasResumable, setHasResumable] = useState(false);
   const [playTimeMs, setPlayTimeMs] = useState(0);
-  const [puzzleStats, setPuzzleStats] = useState<{
-    easy: number;
-    medium: number;
-    hard: number;
-    total: number;
-  } | null>(null);
-  const [sessionHighScore, setSessionHighScore] = useState<number | null>(null);
+  const [overallHighScore, setOverallHighScore] = useState<number | null>(null);
   const [isNewRecord, setIsNewRecord] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -69,8 +63,8 @@ export function GameController() {
     if (gameState.path.length === 0) return;
     const last = gameState.path[gameState.path.length - 1];
     const possible: Position[] = [];
-    // Check up
-    if (last.row > 0 && !gameState.grid[last.row][last.col].walls.N) {
+    // Check up - only blocked by visible walls
+    if (last.row > 0 && !gameState.grid[last.row][last.col].visibleWalls?.N) {
       const pos = { row: last.row - 1, col: last.col };
       if (!gameState.path.some((p) => p.row === pos.row && p.col === pos.col)) {
         possible.push(pos);
@@ -79,7 +73,7 @@ export function GameController() {
     // Check down
     if (
       last.row < gameState.size.rows - 1 &&
-      !gameState.grid[last.row][last.col].walls.S
+      !gameState.grid[last.row][last.col].visibleWalls?.S
     ) {
       const pos = { row: last.row + 1, col: last.col };
       if (!gameState.path.some((p) => p.row === pos.row && p.col === pos.col)) {
@@ -87,7 +81,7 @@ export function GameController() {
       }
     }
     // Check left
-    if (last.col > 0 && !gameState.grid[last.row][last.col].walls.W) {
+    if (last.col > 0 && !gameState.grid[last.row][last.col].visibleWalls?.W) {
       const pos = { row: last.row, col: last.col - 1 };
       if (!gameState.path.some((p) => p.row === pos.row && p.col === pos.col)) {
         possible.push(pos);
@@ -96,7 +90,7 @@ export function GameController() {
     // Check right
     if (
       last.col < gameState.size.cols - 1 &&
-      !gameState.grid[last.row][last.col].walls.E
+      !gameState.grid[last.row][last.col].visibleWalls?.E
     ) {
       const pos = { row: last.row, col: last.col + 1 };
       if (!gameState.path.some((p) => p.row === pos.row && p.col === pos.col)) {
@@ -160,9 +154,11 @@ export function GameController() {
 
       // Fetch new puzzle from server API
       const solvedIds = getSolvedPuzzleIds();
-      const excludedIdsParam =
-        solvedIds.length > 0 ? `?excludedIds=${solvedIds.join(",")}` : "";
-      const response = await fetch(`/api/puzzle${excludedIdsParam}`);
+      const response = await fetch("/api/puzzle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ excludeIds: solvedIds }),
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch puzzle");
@@ -210,41 +206,20 @@ export function GameController() {
     const saved = loadGameState();
     setHasResumable(!!saved && saved.status === "playing");
 
-    // Load session high score
-    setSessionHighScore(getSessionHighScore());
+    // Load overall high score
+    setOverallHighScore(getOverallHighScore());
   }, [initGame]);
 
-  // Separate effect for fetching puzzle stats with auto-refresh
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await fetch("/api/puzzle-stats");
-        const data = await res.json();
-        setPuzzleStats(data);
-      } catch (err) {
-        console.error("Failed to fetch puzzle stats:", err);
-      }
-    };
-
-    // Fetch once on mount (no polling)
-    fetchStats();
-  }, []);
-
-  // Auto-start timer after 1.5 seconds if player hasn't made a move
+  // Start timer immediately when game starts
   useEffect(() => {
     if (gameState.status !== "playing" || gameState.startTime) return;
 
-    const timeout = setTimeout(() => {
-      setGameState((prev) => {
-        // Only set if still undefined
-        if (!prev.startTime) {
-          return { ...prev, startTime: Date.now() };
-        }
-        return prev;
-      });
-    }, 1500);
-
-    return () => clearTimeout(timeout);
+    setGameState((prev) => {
+      if (!prev.startTime) {
+        return { ...prev, startTime: Date.now() };
+      }
+      return prev;
+    });
   }, [gameState.status, gameState.startTime]);
 
   // Separate effect for play time tracking
@@ -285,17 +260,38 @@ export function GameController() {
     // Let's keep it simple: 'playing'. User can make 1 move to win again.
   }, [future, gameState.path]);
 
+  const handleNewGame = useCallback(async () => {
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      // Request server to generate and persist a fresh puzzle
+      await fetch(`/api/generate-puzzle`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ difficulty: gameState.difficulty || "medium" }),
+      });
+
+      // Now initialize game which will fetch a (new) puzzle
+      await initGame(false);
+    } catch (err) {
+      console.error("Failed to generate new puzzle:", err);
+      setLoadError("Failed to generate new puzzle. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [initGame, gameState.difficulty]);
+
   const handleReset = useCallback(() => {
-    if (gameState.path.length <= 1) return;
+    if (gameState.path.length <= 1 || gameState.status === "won") return;
     setHistory((prev) => [...prev, gameState.path]);
     setFuture([]);
-    // Reset to just the start position
+    // Reset to just the start position, keep timer running
     setGameState((prev) => ({
       ...prev,
       path: [prev.path[0]],
       status: "playing",
     }));
-  }, [gameState.path]);
+  }, [gameState.path, gameState.status]);
 
   // Keyboard Shortcuts
   useEffect(() => {
@@ -347,6 +343,22 @@ export function GameController() {
     const dRow = Math.abs(pos.row - currentPos.row);
     const dCol = Math.abs(pos.col - currentPos.col);
     if (!((dRow === 1 && dCol === 0) || (dRow === 0 && dCol === 1))) return;
+
+    // Check if wall blocks the move - only VISIBLE walls block player movement
+    // Internal walls are for puzzle generation validation only
+    let direction: "N" | "S" | "E" | "W" | null = null;
+    if (pos.row < currentPos.row) direction = "N";
+    else if (pos.row > currentPos.row) direction = "S";
+    else if (pos.col < currentPos.col) direction = "W";
+    else if (pos.col > currentPos.col) direction = "E";
+
+    if (
+      direction &&
+      gameState.grid[currentPos.row][currentPos.col].visibleWalls?.[direction]
+    ) {
+      // Movement blocked by visible wall
+      return;
+    }
 
     // Checkpoint validation: if moving to a checkpoint, must have visited previous checkpoint
     const targetCell = gameState.grid[pos.row][pos.col];
@@ -411,9 +423,9 @@ export function GameController() {
       }
 
       // Check and update high score
-      const isNewHighScore = updateSessionHighScore(playTime);
+      const isNewHighScore = updateOverallHighScore(playTime);
       if (isNewHighScore) {
-        setSessionHighScore(playTime);
+        setOverallHighScore(playTime);
         setIsNewRecord(true);
       }
 
@@ -456,7 +468,11 @@ export function GameController() {
   if (isLoading) {
     return (
       <div className="flex flex-col h-full">
-        <TopBar onHelp={handleHelp} />
+        <TopBar
+          onHelp={handleHelp}
+          playTimeMs={0}
+          overallHighScore={overallHighScore}
+        />
         <div className="flex-1 flex items-center justify-center">
           <div className="flex flex-col items-center gap-6">
             <Loader size={48} className="text-blue-500 animate-spin" />
@@ -476,6 +492,9 @@ export function GameController() {
           onUndo={handleUndo}
           onHint={handleHint}
           canUndo={false}
+          onNewGame={handleNewGame}
+          onReset={handleReset}
+          canReset={false}
         />
       </div>
     );
@@ -484,7 +503,11 @@ export function GameController() {
   if (loadError) {
     return (
       <div className="flex flex-col h-full">
-        <TopBar onHelp={handleHelp} />
+        <TopBar
+          onHelp={handleHelp}
+          playTimeMs={0}
+          overallHighScore={overallHighScore}
+        />
         <div className="flex-1 flex items-center justify-center">
           <div className="flex flex-col items-center gap-4 max-w-sm">
             <div className="text-5xl">⚠️</div>
@@ -501,6 +524,9 @@ export function GameController() {
           onUndo={handleUndo}
           onHint={handleHint}
           canUndo={false}
+          onNewGame={handleNewGame}
+          onReset={handleReset}
+          canReset={false}
         />
       </div>
     );
@@ -508,7 +534,11 @@ export function GameController() {
 
   return (
     <div className="flex flex-col h-full">
-      <TopBar onHelp={handleHelp} />
+      <TopBar
+        onHelp={handleHelp}
+        playTimeMs={playTimeMs}
+        overallHighScore={overallHighScore}
+      />
       <div className="flex-1 flex items-center justify-center p-4">
         <GameBoard
           grid={gameState.grid}
@@ -521,6 +551,9 @@ export function GameController() {
         onUndo={handleUndo}
         onHint={handleHint}
         canUndo={history.length > 0}
+        onNewGame={handleNewGame}
+        onReset={handleReset}
+        canReset={gameState.path.length > 1 && gameState.status !== "won"}
       />
 
       {showHelp && (
@@ -583,11 +616,11 @@ export function GameController() {
                   <span className="font-bold">
                     {formatPlayTime(playTimeMs)}
                   </span>
-                  {sessionHighScore !== null && (
+                  {overallHighScore !== null && (
                     <>
                       <br />
                       <span className="text-xs text-gray-500">
-                        Best: {formatPlayTime(sessionHighScore)}
+                        Best: {formatPlayTime(overallHighScore)}
                       </span>
                     </>
                   )}

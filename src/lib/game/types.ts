@@ -1,4 +1,4 @@
-export type Direction = 'N' | 'S' | 'E' | 'W';
+export type Direction = "N" | "S" | "E" | "W";
 
 export interface Walls {
   N: boolean;
@@ -11,7 +11,8 @@ export interface Cell {
   row: number;
   col: number;
   num: number; // 0 if empty, >0 if a sequence marker
-  walls: Walls;
+  walls: Walls; // Internal walls for path validation (always present)
+  visibleWalls: Walls; // Walls to display to user (only for hard difficulty)
 }
 
 export type Grid = Cell[][];
@@ -26,5 +27,5 @@ export interface GameState {
   path: Position[];
   size: { rows: number; cols: number };
   maxNum: number;
-  status: 'playing' | 'won' | 'lost';
+  status: "playing" | "won" | "lost";
 }

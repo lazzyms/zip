@@ -27,8 +27,12 @@ export function Cell({
           ? "bg-orange-200 z-10 border-2 border-white shadow-md"
           : isVisited
           ? "bg-blue-100 border border-blue-300"
-          : "bg-white hover:bg-orange-50 border border-gray-200 hover:border-orange-200"
-        // Walls are invisible - no visual indicators to preserve puzzle discovery
+          : "bg-white hover:bg-orange-50 border border-gray-200 hover:border-orange-200",
+        // Visual wall indicators for blocked sides
+        cell.walls.N && "border-t-4 border-gray-800",
+        cell.walls.S && "border-b-4 border-gray-800",
+        cell.walls.E && "border-r-4 border-gray-800",
+        cell.walls.W && "border-l-4 border-gray-800"
       )}
       onPointerEnter={(e) => {
         // Only move if mouse button is held down (left click = 1)

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useMemo } from "react";
 import { Cell as CellComp } from "./Cell";
 import { Grid as GridType, Position } from "@/lib/game/types";
 import { motion } from "framer-motion";
@@ -12,13 +12,18 @@ interface GridProps {
 export function Grid({ grid, path, onMove }: GridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Helper to check efficiently
-  const isVisited = (r: number, c: number) =>
-    path.some((p) => p.row === r && p.col === c);
-  const isLast = (r: number, c: number) => {
-    const last = path[path.length - 1];
-    return last && last.row === r && last.col === c;
-  };
+  // Precompute lookups for faster checks
+  const visitedSet = useMemo(() => {
+    const s = new Set<string>();
+    for (const p of path) s.add(`${p.row}-${p.col}`);
+    return s;
+  }, [path]);
+
+  const lastPos = useMemo(() => path[path.length - 1] || null, [path]);
+
+  const isVisited = (r: number, c: number) => visitedSet.has(`${r}-${c}`);
+  const isLast = (r: number, c: number) =>
+    !!(lastPos && lastPos.row === r && lastPos.col === c);
 
   // Handle touch moving across elements
   // React's onPointerEnter works for mouse, but for Touch, the target is fixed to the start element.

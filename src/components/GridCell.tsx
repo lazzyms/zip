@@ -13,7 +13,7 @@ interface GridCellProps {
   isHint: boolean;
 }
 
-export function GridCell({
+const GridCellInner = function GridCellInner({
   cell,
   isActive,
   isVisited,
@@ -21,19 +21,36 @@ export function GridCell({
   onPointerDown,
   isHint,
 }: GridCellProps) {
+  // Build box-shadow for visible walls only (not internal path validation walls)
+  const wallShadows: string[] = [];
+  const wallThickness = 3;
+
+  // Only show visibleWalls - these are walls added for hard difficulty
+  if (cell.visibleWalls?.N)
+    wallShadows.push(`0 -${wallThickness}px 0 0 rgb(255, 255, 255)`);
+  if (cell.visibleWalls?.S)
+    wallShadows.push(`0 ${wallThickness}px 0 0 rgb(255, 255, 255)`);
+  if (cell.visibleWalls?.W)
+    wallShadows.push(`-${wallThickness}px 0 0 0 rgb(255, 255, 255)`);
+  if (cell.visibleWalls?.E)
+    wallShadows.push(`${wallThickness}px 0 0 0 rgb(255, 255, 255)`);
+
   return (
     <div
       className={clsx(
         "relative flex items-center justify-center select-none touch-none transition-all duration-300",
-        "w-full h-full rounded-2xl hover:scale-105",
-        // Dark theme - neutral colors
+        "w-full h-full hover:scale-105 rounded-lg",
+        // Dark theme - boring colors
         isActive
-          ? "bg-blue-500 z-10 border-2 border-white shadow-md"
+          ? "bg-gray-600 z-10 border-2 border-gray-300"
           : isVisited
-          ? "bg-blue-900 border border-blue-700"
-          : "bg-neutral-700 hover:bg-neutral-600 border border-neutral-600 hover:border-neutral-500",
-        isHint && "ring-2 ring-blue-400"
+          ? "bg-gray-700 border border-gray-600"
+          : "bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600",
+        isHint && "ring-2 ring-gray-400"
       )}
+      style={{
+        boxShadow: wallShadows.length > 0 ? wallShadows.join(", ") : undefined,
+      }}
       onPointerEnter={(e) => {
         // Only move if mouse button is held down (left click = 1)
         if (e.buttons === 1) {
@@ -51,4 +68,6 @@ export function GridCell({
       {cell.num > 0 && <Node num={cell.num} isVisited={isVisited} />}
     </div>
   );
-}
+};
+
+export const GridCell = React.memo(GridCellInner);

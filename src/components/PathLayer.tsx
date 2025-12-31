@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useMemo } from "react";
 import { Position } from "@/lib/game/types";
 import { motion } from "framer-motion";
 
@@ -9,8 +9,30 @@ interface PathLayerProps {
   cols: number;
 }
 
-export function PathLayer({ path, rows, cols }: PathLayerProps) {
+const computePathString = (path: Position[], rows: number, cols: number) => {
+  if (path.length === 0) return "";
+
+  const getX = (c: number) => ((c + 0.5) / cols) * 100;
+  const getY = (r: number) => ((r + 0.5) / rows) * 100;
+
+  let d = `M ${getX(path[0].col)} ${getY(path[0].row)}`;
+  for (let i = 1; i < path.length; i++) {
+    d += ` L ${getX(path[i].col)} ${getY(path[i].row)}`;
+  }
+  return d;
+};
+
+export const PathLayer = React.memo(function PathLayer({
+  path,
+  rows,
+  cols,
+}: PathLayerProps) {
   if (path.length <= 1) return null;
+
+  const d = useMemo(
+    () => computePathString(path, rows, cols),
+    [path, rows, cols]
+  );
 
   return (
     <svg
@@ -36,7 +58,7 @@ export function PathLayer({ path, rows, cols }: PathLayerProps) {
         </linearGradient>
       </defs>
       <motion.path
-        d={getPathString(path, rows, cols)}
+        d={d}
         stroke="url(#pathGradient)"
         strokeWidth="6"
         fill="none"
@@ -48,18 +70,4 @@ export function PathLayer({ path, rows, cols }: PathLayerProps) {
       />
     </svg>
   );
-}
-
-// Logic to convert grid path to SVG path coordinates
-function getPathString(path: Position[], rows: number, cols: number): string {
-  if (path.length === 0) return "";
-
-  const getX = (c: number) => ((c + 0.5) / cols) * 100;
-  const getY = (r: number) => ((r + 0.5) / rows) * 100;
-
-  let d = `M ${getX(path[0].col)} ${getY(path[0].row)}`;
-  for (let i = 1; i < path.length; i++) {
-    d += ` L ${getX(path[i].col)} ${getY(path[i].row)}`;
-  }
-  return d;
-}
+});

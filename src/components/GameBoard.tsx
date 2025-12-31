@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useMemo } from "react";
 import { Grid as GridType, Position } from "@/lib/game/types";
 import { GridCell } from "./GridCell";
 import { PathLayer } from "./PathLayer";
@@ -19,13 +19,18 @@ export function GameBoard({
 }: GameBoardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Helper to check efficiently
-  const isVisited = (r: number, c: number) =>
-    path.some((p) => p.row === r && p.col === c);
-  const isLast = (r: number, c: number) => {
-    const last = path[path.length - 1];
-    return last && last.row === r && last.col === c;
-  };
+  // Precompute lookups for faster checks
+  const visitedSet = useMemo(() => {
+    const s = new Set<string>();
+    for (const p of path) s.add(`${p.row}-${p.col}`);
+    return s;
+  }, [path]);
+
+  const lastPos = useMemo(() => path[path.length - 1] || null, [path]);
+
+  const isVisited = (r: number, c: number) => visitedSet.has(`${r}-${c}`);
+  const isLast = (r: number, c: number) =>
+    !!(lastPos && lastPos.row === r && lastPos.col === c);
 
   // Handle touch moving across elements
   useEffect(() => {
@@ -95,48 +100,47 @@ export function GameBoard({
   if (rows === 0) return null; // Handle loading state
   const cols = grid[0].length;
 
-  return (
-    <div
-      ref={containerRef}
-      className="relative select-none touch-none bg-neutral-800 p-2 sm:p-3 md:p-4 rounded-3xl border border-neutral-600"
-      style={{
-        display: "grid",
-        gap:
-          window.innerWidth < 640
-            ? "4px"
-            : window.innerWidth < 768
-            ? "5px"
-            : "6px",
-        gridTemplateRows: `repeat(${rows}, 1fr)`,
-        gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        aspectRatio: `${cols}/${rows}`,
-        width: "100%",
-        maxWidth: "500px",
-      }}
-    >
-      {/* Render Cells */}
-      {grid.map((row, r) =>
-        row.map((cell, c) => (
-          <GridCell
-            key={`${r}-${c}`}
-            cell={cell}
-            isActive={isLast(r, c)}
-            isVisited={isVisited(r, c)}
-            isHint={
-              !!(
-                hintPosition &&
-                hintPosition.row === r &&
-                hintPosition.col === c
-              )
-            }
-            onPointerEnter={() => onMove({ row: r, col: c })}
-            onPointerDown={() => onMove({ row: r, col: c })}
-          />
-        ))
-      )}
+  const gap = window.innerWidth < 640 ? 8 : window.innerWidth < 768 ? 9 : 10;
 
-      {/* Path Layer */}
-      <PathLayer path={path} rows={rows} cols={cols} />
+  return (
+    <div className="relative">
+      <div
+        ref={containerRef}
+        className="relative select-none touch-none bg-neutral-800 p-2 sm:p-3 md:p-4 border border-neutral-600 rounded-lg"
+        style={{
+          display: "grid",
+          gap: `${gap}px`,
+          gridTemplateRows: `repeat(${rows}, 1fr)`,
+          gridTemplateColumns: `repeat(${cols}, 1fr)`,
+          aspectRatio: `${cols}/${rows}`,
+          width: "100%",
+          maxWidth: "500px",
+        }}
+      >
+        {/* Render Cells */}
+        {grid.map((row, r) =>
+          row.map((cell, c) => (
+            <GridCell
+              key={`${r}-${c}`}
+              cell={cell}
+              isActive={isLast(r, c)}
+              isVisited={isVisited(r, c)}
+              isHint={
+                !!(
+                  hintPosition &&
+                  hintPosition.row === r &&
+                  hintPosition.col === c
+                )
+              }
+              onPointerEnter={() => onMove({ row: r, col: c })}
+              onPointerDown={() => onMove({ row: r, col: c })}
+            />
+          ))
+        )}
+
+        {/* Path Layer */}
+        <PathLayer path={path} rows={rows} cols={cols} />
+      </div>
     </div>
   );
 }
